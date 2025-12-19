@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChatBot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Top Bar with Avatar Slot -->
+  <header class="topbar">
+    <div class="avatar" id="avatar">
+      <img id="avatarImg" src="assets/Medya.png" alt="Avatar" />
+      <input id="avatarInput" type="file" accept="image/*" hidden />
+    </div>
+    <div class="brand">FEKAI</div>
+    <div class="top-actions">
+      <button id="historyBtn" class="ghost">📋 Geçmiş</button>
+      <button id="newChatBtn" class="ghost">➕ Yeni</button>
+    </div>
+  </header>
+
+  <!-- Overlay for sidebar -->
+  <div class="sidebar-overlay"></div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    <!-- Sidebar for Chat History -->
+    <aside id="historySidebar" class="history-sidebar">
+      <div class="sidebar-header">
+        <h3>Geçmiş Sohbetler</h3>
+        <button id="closeHistoryBtn" class="close-btn">✕</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <section class="hero">
+        <div class="logo"><img id="heroLogo" src="assets/Medya.png" alt="Logo" /></div>
+        <h1 id="greeting" class="title">Merhaba, Ali</h1>
+      </section>
+
+      <section class="chat-card">
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <div class="composer">
+          <input id="fileInput" type="file" accept=".pdf,.txt,.csv" hidden />
+          <button id="fileUploadBtn" class="tool" title="Döküman Yükle" aria-label="Döküman Yükle">📄</button>
+          <input id="input" class="input" placeholder="Bugün size nasıl yardımcı olabilirim?" autocomplete="off" />
+          <div class="model">
+            <select id="modelSelect" aria-label="Model">
+              <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+              <option value="gpt-4o">gpt-4o</option>
+            </select>
+          </div>
+          <button id="send" class="send" aria-label="Gönder">➤</button>
+        </div>
+        <div id="fileStatus" class="file-status" style="display: none;"></div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">Basit bir demo. Mesajlar yerel olarak saklanır.</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
