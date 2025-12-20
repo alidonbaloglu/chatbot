@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChatBot - Giriş</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 450px;
+      padding: 40px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      overflow: hidden;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+    }
+
+    .login-header h1 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 10px;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .login-header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .login-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .login-tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #999;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .login-tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .login-forms {
+      position: relative;
+    }
+
+    .login-form {
+      display: none;
+    }
+
+    .login-form.active {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-button:active {
+      transform: translateY(0);
+    }
+
+    .error-message {
+      color: #dc3545;
+      font-size: 13px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .success-message {
+      color: #155724;
+      font-size: 13px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .demo-note {
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: #004085;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+
+      .login-header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo"><img src="assets/Medya.png" alt="FEKAI Logo" /></div>
+      <h1>FEKAI</h1>
+      <p>Akıllı Sohbet Uygulaması</p>
+    </div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" data-tab="user">Kullanıcı Girişi</button>
+      <button class="login-tab" data-tab="admin">Admin Girişi</button>
+    </div>
+
+    <div class="login-forms">
+      <!-- Kullanıcı Girişi -->
+      <div class="login-form active" id="userForm">
+        <div class="demo-note">
+          Demo: Kullanıcı adı: <strong>user1</strong>, Şifre: <strong>password123</strong>
+        </div>
+        <div class="error-message" id="userError"></div>
+        <div class="success-message" id="userSuccess"></div>
+        <div class="form-group">
+          <label for="userUsername">Kullanıcı Adı</label>
+          <input type="text" id="userUsername" placeholder="Kullanıcı adınızı girin" />
+        </div>
+        <div class="form-group">
+          <label for="userPassword">Şifre</label>
+          <input type="password" id="userPassword" placeholder="Şifrenizi girin" />
+        </div>
+        <button class="login-button" id="userLoginBtn">Giriş Yap</button>
+      </div>
+
+      <!-- Admin Girişi -->
+      <div class="login-form" id="adminForm">
+        <div class="demo-note">
+          Demo: Kullanıcı adı: <strong>admin</strong>, Şifre: <strong>admin123</strong>
+        </div>
+        <div class="error-message" id="adminError"></div>
+        <div class="success-message" id="adminSuccess"></div>
+        <div class="form-group">
+          <label for="adminUsername">Admin Kullanıcı Adı</label>
+          <input type="text" id="adminUsername" placeholder="Admin kullanıcı adını girin" />
+        </div>
+        <div class="form-group">
+          <label for="adminPassword">Admin Şifresi</label>
+          <input type="password" id="adminPassword" placeholder="Admin şifresini girin" />
+        </div>
+        <button class="login-button" id="adminLoginBtn">Admin Girişi Yap</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab değiştirme
+    document.querySelectorAll('.login-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        
+        document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(tabName + 'Form').classList.add('active');
+      });
+    });
+
+    // Kullanıcı Girişi
+    document.getElementById('userLoginBtn').addEventListener('click', async () => {
+      const username = document.getElementById('userUsername').value.trim();
+      const password = document.getElementById('userPassword').value.trim();
+
+      if (!username || !password) {
+        showError('userError', 'Lütfen tüm alanları doldurun');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role: 'user' })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userRole', 'user');
+          localStorage.setItem('username', data.username);
+          showSuccess('userSuccess', 'Başarıyla giriş yaptınız!');
+          setTimeout(() => window.location.href = '/index.html', 1500);
+        } else {
+          showError('userError', data.error || 'Giriş başarısız');
+        }
+      } catch (error) {
+        showError('userError', 'Bir hata oluştu: ' + error.message);
+      }
+    });
+
+    // Admin Girişi
+    document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+      const username = document.getElementById('adminUsername').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+
+      if (!username || !password) {
+        showError('adminError', 'Lütfen tüm alanları doldurun');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role: 'admin' })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userRole', 'admin');
+          localStorage.setItem('username', data.username);
+          showSuccess('adminSuccess', 'Admin olarak başarıyla giriş yaptınız!');
+          setTimeout(() => window.location.href = '/admin.html', 1500);
+        } else {
+          showError('adminError', data.error || 'Admin girişi başarısız');
+        }
+      } catch (error) {
+        showError('adminError', 'Bir hata oluştu: ' + error.message);
+      }
+    });
+
+    function showError(elementId, message) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.classList.add('show');
+      setTimeout(() => element.classList.remove('show'), 5000);
+    }
+
+    function showSuccess(elementId, message) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.classList.add('show');
+    }
+
+    // Enter tuşu ile giriş yap
+    document.getElementById('userPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('userLoginBtn').click();
+    });
+
+    document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('adminLoginBtn').click();
+    });
+
+    // Eğer zaten giriş yapılmışsa yönlendir
+    if (localStorage.getItem('authToken')) {
+      window.location.href = '/index.html';
+    }
+  </script>
+</body>
+</html>

@@ -86,11 +86,6 @@ else:
 
 if typing.TYPE_CHECKING:
   import yaml
-else:
-  try:
-    import yaml
-  except ImportError:
-    yaml = None
 
 _is_httpx_imported = False
 if typing.TYPE_CHECKING:
@@ -267,14 +262,18 @@ class PhishBlockThreshold(_common.CaseInSensitiveEnum):
 
 
 class ThinkingLevel(_common.CaseInSensitiveEnum):
-  """The level of thoughts tokens that the model should generate."""
+  """The number of thoughts tokens that the model should generate."""
 
   THINKING_LEVEL_UNSPECIFIED = 'THINKING_LEVEL_UNSPECIFIED'
-  """Default value."""
+  """Unspecified thinking level."""
   LOW = 'LOW'
   """Low thinking level."""
+  MEDIUM = 'MEDIUM'
+  """Medium thinking level."""
   HIGH = 'HIGH'
   """High thinking level."""
+  MINIMAL = 'MINIMAL'
+  """MINIMAL thinking level."""
 
 
 class HarmCategory(_common.CaseInSensitiveEnum):
@@ -577,6 +576,8 @@ class PartMediaResolutionLevel(_common.CaseInSensitiveEnum):
   """Media resolution set to medium."""
   MEDIA_RESOLUTION_HIGH = 'MEDIA_RESOLUTION_HIGH'
   """Media resolution set to high."""
+  MEDIA_RESOLUTION_ULTRA_HIGH = 'MEDIA_RESOLUTION_ULTRA_HIGH'
+  """Media resolution set to ultra high."""
 
 
 class ResourceScope(_common.CaseInSensitiveEnum):
@@ -4484,24 +4485,19 @@ SpeakerVoiceConfigOrDict = Union[SpeakerVoiceConfig, SpeakerVoiceConfigDict]
 
 
 class MultiSpeakerVoiceConfig(_common.BaseModel):
-  """The configuration for the multi-speaker setup.
-
-  This data type is not supported in Vertex AI.
-  """
+  """Configuration for a multi-speaker text-to-speech request."""
 
   speaker_voice_configs: Optional[list[SpeakerVoiceConfig]] = Field(
-      default=None, description="""Required. All the enabled speaker voices."""
+      default=None,
+      description="""Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.""",
   )
 
 
 class MultiSpeakerVoiceConfigDict(TypedDict, total=False):
-  """The configuration for the multi-speaker setup.
-
-  This data type is not supported in Vertex AI.
-  """
+  """Configuration for a multi-speaker text-to-speech request."""
 
   speaker_voice_configs: Optional[list[SpeakerVoiceConfigDict]]
-  """Required. All the enabled speaker voices."""
+  """Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided."""
 
 
 MultiSpeakerVoiceConfigOrDict = Union[
@@ -4521,7 +4517,7 @@ class SpeechConfig(_common.BaseModel):
   )
   multi_speaker_voice_config: Optional[MultiSpeakerVoiceConfig] = Field(
       default=None,
-      description="""Optional. The configuration for the multi-speaker setup. It is mutually exclusive with the voice_config field. This field is not supported in Vertex AI.""",
+      description="""The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`.""",
   )
 
 
@@ -4534,7 +4530,7 @@ class SpeechConfigDict(TypedDict, total=False):
   """Optional. Language code (ISO 639. e.g. en-US) for the speech synthesization."""
 
   multi_speaker_voice_config: Optional[MultiSpeakerVoiceConfigDict]
-  """Optional. The configuration for the multi-speaker setup. It is mutually exclusive with the voice_config field. This field is not supported in Vertex AI."""
+  """The configuration for a multi-speaker text-to-speech request. This field is mutually exclusive with `voice_config`."""
 
 
 SpeechConfigOrDict = Union[SpeechConfig, SpeechConfigDict]
@@ -4614,7 +4610,7 @@ class ThinkingConfig(_common.BaseModel):
   )
   thinking_level: Optional[ThinkingLevel] = Field(
       default=None,
-      description="""Optional. The level of thoughts tokens that the model should generate.""",
+      description="""Optional. The number of thoughts tokens that the model should generate.""",
   )
 
 
@@ -4630,7 +4626,7 @@ class ThinkingConfigDict(TypedDict, total=False):
       """
 
   thinking_level: Optional[ThinkingLevel]
-  """Optional. The level of thoughts tokens that the model should generate."""
+  """Optional. The number of thoughts tokens that the model should generate."""
 
 
 ThinkingConfigOrDict = Union[ThinkingConfig, ThinkingConfigDict]
@@ -10645,7 +10641,9 @@ class Metric(_common.BaseModel):
     Raises:
         ImportError: If the pyyaml library is not installed.
     """
-    if yaml is None:
+    try:
+      import yaml
+    except ImportError:
       raise ImportError(
           'YAML serialization requires the pyyaml library. Please install'
           " it using 'pip install google-cloud-aiplatform[evaluation]'."

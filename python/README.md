@@ -1,34 +1,68 @@
 # Python RAG (Gemini + Chroma)
 
-This optional Python setup builds a vector database from your PDFs and runs a retrieval-augmented chat using Gemini.
+Bu Python klasörü, PDF dökümanlarından vektör veritabanı oluşturur ve Gemini ile RAG (Retrieval-Augmented Generation) sohbeti yapar.
 
-## Setup (Windows PowerShell)
+## ✅ Kurulum Tamamlandı
 
-```powershell
-# Create and activate venv
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+Tüm Python paketleri yüklendi:
+- ✅ `langchain` ve `langchain-google-genai`
+- ✅ `langchain-chroma` ve `chromadb`
+- ✅ `semantic-router` ve `semantic-chunkers`
+- ✅ `pypdf` (PDF okuma)
 
-# Install packages
-pip install -r python/requirements.txt
+## 📄 Kullanım
 
-# Configure environment (set your Google AI Studio key)
-$env:GOOGLE_API_KEY = "YOUR_GOOGLE_API_STUDIO_KEY"
+### 1. PDF Ekle
+
+`documents/` klasörüne PDF dosyalarınızı ekleyin:
+
+```
+python/
+├── documents/          👈 PDF'leri buraya
+│   ├── dosya1.pdf
+│   ├── dosya2.pdf
+│   └── ...
 ```
 
-## Build the Vector DB
-Place PDFs under `documents/`, then run:
+### 2. Vektör Veritabanı Oluştur
 
 ```powershell
 python python/rag_build.py
 ```
 
-This creates `database_gemini/` with a `gemini_rag_collection`.
+Bu komut:
+- PDF'leri okur ve semantik chunking yapar
+- ChromaDB vektör veritabanı oluşturur (`database_gemini/`)
 
-## Run RAG Chat
+### 3. RAG Sohbeti
+
 ```powershell
 python python/rag_chat.py
 ```
+
+Terminal'de dökümanlarınız hakkında sorular sorabilirsiniz.
+
+## ⚙️ API Anahtarı
+
+`.env` dosyasında (ana dizinde) Gemini API anahtarınızı ayarlayın:
+
+```env
+GOOGLE_API_KEY=YOUR_NEW_GEMINI_API_KEY
+```
+
+**Önemli**: Yeni bir API anahtarı alın: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+
+## 📊 Modeller
+
+- **Embedding**: `models/text-embedding-004`
+- **Chat**: `gemini-1.5-flash` (varsayılan)
+
+## ⚠️ Notlar
+
+- PDF'ler text-based olmalı (taranmış görüntü değil)
+- Minimum 1 sayfa içermeli
+- İlk çalıştırmada `documents/` klasörü otomatik oluşturulur
+
 
 Ask questions; answers are grounded only in your documents, with sources preview.
 

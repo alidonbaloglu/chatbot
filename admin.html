@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Paneli - FEKAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="avatar">
+      <img src="assets/Medya.png" alt="Admin" />
+    </div>
+    <div class="brand">FEKAI - Admin Paneli</div>
+    <div class="top-actions">
+      <div id="userInfo" class="user-info"></div>
+      <button id="logoutBtn" class="ghost">🚪 Çıkış</button>
+    </div>
+  </header>
+
+  <!-- Admin Dashboard -->
+  <div class="admin-dashboard">
+    <!-- Stats Cards -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-icon">💬</div>
+        <div class="stat-info">
+          <div class="stat-value" id="totalChatsCount">0</div>
+          <div class="stat-label">Toplam Sohbet</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <div class="stat-value" id="totalUsersCount">0</div>
+          <div class="stat-label">Aktif Kullanıcı</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📨</div>
+        <div class="stat-info">
+          <div class="stat-value" id="totalMessagesCount">0</div>
+          <div class="stat-label">Toplam Mesaj</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+          <div class="stat-value" id="uploadedFilesCount">0</div>
+          <div class="stat-label">Bilgi Havuzu</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="admin-grid">
+      <!-- Bilgi Havuzu Section -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>📚 Bilgi Havuzu</h3>
+          <button id="refreshSourcesBtn" class="btn-refresh">🔄</button>
+        </div>
+        <div class="admin-card-body">
+          <div class="upload-zone">
+            <input id="adminFileInput" type="file" accept=".pdf,.txt,.csv,.png,.jpg,.jpeg,.gif,.webp,.mp3,.wav,.mp4,.avi,.mov" multiple hidden />
+            <button id="adminFileUploadBtn" class="btn-primary">
+              <span>📤</span> Döküman Yükle
+            </button>
+            <p class="upload-info" style="font-size:12px; color:#666; margin-top:12px;">
+              ⚠️ Gemini Desteklenen: PDF, TXT, CSV, Resimler (PNG/JPG/GIF/WEBP), Ses (MP3/WAV), Video (MP4/AVI/MOV)
+            </p>
+            <p class="upload-info" style="font-size:11px; color:#999; margin-top:4px;">
+              ❌ Excel, Word, PowerPoint gibi Office dosyaları şu an desteklenmiyor
+            </p>
+            <p id="adminFileStatus" class="upload-status"></p>
+          </div>
+          <div id="uploadedSourcesList" class="sources-list">
+            <div class="empty-state">Henüz döküman yüklenmedi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kullanıcı Sohbetleri Section -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>💬 Kullanıcı Sohbetleri</h3>
+          <button id="refreshChatsBtn" class="btn-refresh">🔄</button>
+        </div>
+        <div class="admin-card-body">
+          <div id="allChatsContainer" class="chats-list">
+            <div class="empty-state">Henüz sohbet yok</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Detail Modal -->
+  <div id="chatDetailModal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalChatUsername">Sohbet Detayları</h3>
+        <button id="closeModalBtn" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalChatMessages" class="chat-messages"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Döküman Detail Modal -->
+  <div id="documentDetailModal" class="modal" style="display:none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalDocumentName">Döküman Detayları</h3>
+        <button id="closeDocModalBtn" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="document-details">
+          <div class="detail-item">
+            <div class="detail-label">📄 Dosya Adı</div>
+            <div class="detail-value" id="modalDocFileName">-</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">👤 Yükleyen</div>
+            <div class="detail-value" id="modalDocUploadedBy">-</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">📅 Yüklenme Tarihi</div>
+            <div class="detail-value" id="modalDocUploadedAt">-</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">💾 Dosya Boyutu</div>
+            <div class="detail-value" id="modalDocFileSize">-</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">📋 Dosya Türü</div>
+            <div class="detail-value" id="modalDocMimeType">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

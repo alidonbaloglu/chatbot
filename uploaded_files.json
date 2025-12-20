@@ -1,0 +1,18 @@
+[
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/x7je4tja94sc",
+    "fileName": "kaynak.txt",
+    "mimeType": "text/plain",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-20T18:35:35.891Z",
+    "fileSize": 1557
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/6n33mjyi0i4z",
+    "fileName": "12_25_251201_172316.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-20T18:35:43.633Z",
+    "fileSize": 74028
+  }
+]

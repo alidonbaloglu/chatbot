@@ -20,6 +20,8 @@
     <div class="top-actions">
       <button id="historyBtn" class="ghost">📋 Geçmiş</button>
       <button id="newChatBtn" class="ghost">➕ Yeni</button>
+      <div id="userInfo" class="user-info"></div>
+      <button id="logoutBtn" class="ghost">🚪 Çıkış</button>
     </div>
   </header>
 
@@ -30,11 +32,76 @@
   <div class="app-container">
     <!-- Sidebar for Chat History -->
     <aside id="historySidebar" class="history-sidebar">
-      <div class="sidebar-header">
-        <h3>Geçmiş Sohbetler</h3>
-        <button id="closeHistoryBtn" class="close-btn">✕</button>
+      <!-- Tabs for switching between chat history and admin panel -->
+      <div id="sidebarTabs" class="sidebar-tabs" style="display: none;">
+        <button class="sidebar-tab active" data-tab="history">📋 Sohbetler</button>
+        <button class="sidebar-tab" data-tab="admin">👑 Admin</button>
       </div>
-      <div id="historyList" class="history-list"></div>
+      
+      <!-- Chat History Section -->
+      <div id="historySection" class="sidebar-section active">
+        <div class="sidebar-header">
+          <h3>Geçmiş Sohbetler</h3>
+          <button id="closeHistoryBtn" class="close-btn">✕</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
+      
+      <!-- Admin Panel Section -->
+      <div id="adminSection" class="sidebar-section" style="display: none;">
+        <div class="sidebar-header">
+          <h3>👑 Admin Paneli</h3>
+          <button id="closeAdminBtn" class="close-btn">✕</button>
+        </div>
+        <div class="admin-panel-content">
+          <!-- Dosya Yükleme -->
+          <div class="admin-section">
+            <h4>📁 Kaynak Yükleme</h4>
+            <input id="adminFileInput" type="file" accept=".pdf,.txt,.csv" multiple hidden />
+            <button id="adminFileUploadBtn" class="admin-button-primary">Dosya Seç ve Yükle</button>
+            <p id="adminFileStatus" class="admin-info" style="margin-top: 8px;"></p>
+          </div>
+          
+          <!-- Yüklenen Kaynaklar -->
+          <div class="admin-section">
+            <h4>📚 Yüklenen Kaynaklar</h4>
+            <div id="uploadedSourcesList" class="uploaded-sources-list">
+              <div class="no-sources">Henüz kaynak yüklenmedi</div>
+            </div>
+          </div>
+          
+          <!-- İstatistikler -->
+          <div class="admin-section">
+            <h4>📊 İstatistikler</h4>
+            <div id="statsContainer" class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-value" id="totalChatsCount">0</div>
+                <div class="stat-label">Toplam Sohbet</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value" id="totalUsersCount">0</div>
+                <div class="stat-label">Aktif Kullanıcı</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value" id="totalMessagesCount">0</div>
+                <div class="stat-label">Toplam Mesaj</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-value" id="uploadedFilesCount">0</div>
+                <div class="stat-label">Yüklü Dosya</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Tüm Sohbetler -->
+          <div class="admin-section">
+            <h4>💬 Tüm Kullanıcı Sohbetleri</h4>
+            <div id="allChatsContainer" class="all-chats-list"></div>
+          </div>
+          
+          <button id="refreshAdminBtn" class="admin-button">🔄 Verileri Yenile</button>
+        </div>
+      </div>
     </aside>
 
     <!-- Main Content -->

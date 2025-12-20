@@ -2,6 +2,33 @@
 
 Bu proje, ekran görüntüsüne benzeyen basit bir sohbet arayüzüdür. Sol üstte avatar alanı bulunur; tıklayıp görsel yükleyebilirsiniz. Sohbet geçmişi ve avatar tarayıcıda (localStorage) saklanır. Node.js proxy sunucusu ile OpenAI veya Gemini (Google) üzerinden yanıt üretebilir.
 
+## ⚠️ Önemli: API Anahtarı
+
+**Gemini API anahtarınız sızdırıldı olarak işaretlendi!** Yeni bir API anahtarı almanız gerekiyor:
+
+1. 🔗 **Yeni API Anahtarı Al**: [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+2. 🗑️ **Eski Anahtarı Sil**: Google AI Studio'da eski anahtarınızı silin
+3. ✅ **Yeni Anahtarı Kullan**: `.env` dosyasına yeni anahtarı ekleyin
+4. 🚫 **GitHub'a Yüklemeyin**: `.env` dosyasını asla commit etmeyin
+
+> **Not**: Güncel modeller: `gemini-1.5-flash`, `gemini-1.5-flash-002`, `gemini-1.5-pro`
+
+## Giriş Sistemi
+
+Uygulamada iki farklı kullanıcı türü vardır:
+
+### Kullanıcı Girişi
+- **Kullanıcı Adı**: `user1`
+- **Şifre**: `password123`
+- Açıklama: Normal kullanıcı sohbet yapabilir
+
+### Admin Girişi
+- **Kullanıcı Adı**: `admin`
+- **Şifre**: `admin123`
+- Açıklama: Admin hesabı ile erişim (gelecekte admin özellikleri eklenebilir)
+
+> **Not**: Demo amaçlıdır. Üretim ortamında şifreler şifrelenmiş olarak veritabanında saklanmalıdır.
+
 ## Kurulum ve Çalıştırma (Windows PowerShell)
 
 1) Bağımlılıkları kurun
@@ -13,7 +40,7 @@ npm install
 ```powershell
 # Geçerli oturum için (örnek: Gemini
 $env:PROVIDER = "gemini"
-$env:GEMINI_API_KEY = "YOUR_GEMINI_KEY"
+$env:GEMINI_API_KEY = "YOUR_NEW_GEMINI_KEY"
 # İsteğe bağlı: model
 $env:GEMINI_MODEL = "gemini-1.5-flash"
 
@@ -30,13 +57,17 @@ Copy-Item .env.example .env
 3) Sunucuyu başlatın ve tarayıcıda açın (varsayılan port 5280)
 ```powershell
 npm start
-Start-Process http://localhost:5280/index.html
+Start-Process http://localhost:5280/login.html
 ```
 
 ## Kullanım
-- Sol üst avatar alanına tıklayıp görsel seçin.
-- Mesaj yazıp Enter’a basın veya gönder tuşuna tıklayın.
-- `Yeni sohbet` geçmişi temizler.
+- `http://localhost:5280/login.html` adresine gidin
+- Kullanıcı veya Admin olarak giriş yapın
+- Giriş yapıldıktan sonra chat sayfasına yönlendirilirsiniz
+- Sol üst avatar alanına tıklayıp görsel seçin
+- Mesaj yazıp Enter'a basın veya gönder tuşuna tıklayın
+- `Yeni sohbet` geçmişi temizler
+- Sağ üst köşedeki `Çıkış` butonu ile logout olabilirsiniz
 
 ### Logo ve ikon görselleri
 - Arayüzdeki varsayılan avatar ve logo `assets/Medya.png` olarak ayarlanmıştır.
@@ -45,7 +76,11 @@ Start-Process http://localhost:5280/index.html
 
 ## Nasıl Çalışır
 - İstemci: `index.html`, `styles.css`, `app.js`
-- Sunucu: `server.mjs` bir `/api/chat` endpoint’i sağlar ve istekleri seçili sağlayıcıya (OpenAI/Gemini) iletir. Anahtar tarayıcıya sızmaz.
+- Login sayfası: `login.html` - Kullanıcı ve Admin girişi
+- Sunucu: `server.mjs` 
+  - `/api/login` endpoint'i ile kimlik doğrulama
+  - `/api/chat` endpoint'i ile sohbet iletişimi
+  - İstekleri seçili sağlayıcıya (OpenAI/Gemini) iletir. Anahtar tarayıcıya sızmaz.
 - Yapılandırma: `.env.example` örneğine göre `.env` oluşturabilirsiniz (repo, `.env` dosyasını `.gitignore` ile yok sayar).
 
 ## Önemli Not

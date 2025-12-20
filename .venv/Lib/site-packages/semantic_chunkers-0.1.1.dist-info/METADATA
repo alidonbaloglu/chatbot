@@ -1,0 +1,79 @@
+Metadata-Version: 2.4
+Name: semantic-chunkers
+Version: 0.1.1
+Summary: Super advanced chunking methods for AI
+Author-email: Aurelio AI <hello@aurelio.ai>
+License: MIT License
+        
+        Copyright (c) 2024 Aurelio AI
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+License-File: LICENSE
+Requires-Python: <3.14,>=3.10
+Requires-Dist: colorama>=0.4.6
+Requires-Dist: colorlog>=6.8.0
+Requires-Dist: numpy>=1.26.0
+Requires-Dist: pydantic>=2.5.3
+Requires-Dist: regex>=2023.12.25
+Requires-Dist: semantic-router>=0.1.0
+Requires-Dist: tiktoken<1.0.0,>=0.7.0
+Provides-Extra: dev
+Requires-Dist: ipykernel<7,>=6.25.0; extra == 'dev'
+Requires-Dist: mypy<2,>=1.7.1; extra == 'dev'
+Requires-Dist: pytest-asyncio<0.25,>=0.24.0; extra == 'dev'
+Requires-Dist: pytest-cov<5,>=4.1.0; extra == 'dev'
+Requires-Dist: pytest-mock<4,>=3.12.0; extra == 'dev'
+Requires-Dist: pytest-xdist<4,>=3.5.0; extra == 'dev'
+Requires-Dist: pytest~=8.2; extra == 'dev'
+Requires-Dist: requests-mock<2,>=1.12.1; extra == 'dev'
+Requires-Dist: ruff<0.12,>=0.11.2; extra == 'dev'
+Requires-Dist: types-pyyaml<7,>=6.0.12.12; extra == 'dev'
+Requires-Dist: types-requests<3,>=2.31.0; extra == 'dev'
+Provides-Extra: stats
+Requires-Dist: matplotlib>=3.8.3; extra == 'stats'
+Description-Content-Type: text/markdown
+
+[![Aurelio AI](https://pbs.twimg.com/profile_banners/1671498317455581184/1696285195/1500x500)](https://aurelio.ai)
+
+# Semantic Chunkers
+
+<p>
+<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/semantic-chunkers?logo=python&logoColor=gold" />
+<img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/aurelio-labs/semantic-chunkers" />
+<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/aurelio-labs/semantic-chunkers" />
+<img alt="" src="https://img.shields.io/github/repo-size/aurelio-labs/semantic-chunkers" />
+<img alt="GitHub Issues" src="https://img.shields.io/github/issues/aurelio-labs/semantic-chunkers" />
+<img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/aurelio-labs/semantic-chunkers" />
+<img src="https://codecov.io/gh/aurelio-labs/semantic-chunkers/graph/badge.svg?token=H8OOMV2TUF" />
+<img alt="Github License" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+</p>
+
+Semantic Chunkers is a multi-modal chunking library for intelligent chunking of text, video, and audio. It makes your AI and data processing more efficient _and_ accurate.
+
+---
+
+## 📚 Resources
+
+### Docs
+
+| Notebook | Description |
+| -------- | ----------- |
+| [Introduction](https://github.com/aurelio-labs/semantic-chunkers/blob/main/docs/01-video-chunking.ipynb) | Chunking videos with semantics |
+
+

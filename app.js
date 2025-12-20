@@ -1,4 +1,10 @@
 (function(){
+  // Authentication kontrolü
+  if (!localStorage.getItem('authToken')) {
+    window.location.href = '/login.html';
+    return;
+  }
+
   const el = sel => document.querySelector(sel);
   const messagesEl = el('#messages');
   const inputEl = el('#input');
@@ -17,9 +23,39 @@
   const fileInput = el('#fileInput');
   const fileUploadBtn = el('#fileUploadBtn');
   const fileStatus = el('#fileStatus');
+  const userInfoEl = el('#userInfo');
+  const logoutBtn = el('#logoutBtn');
+  
+  // Admin panel elements
+  const sidebarTabs = el('#sidebarTabs');
+  const historySection = el('#historySection');
+  const adminSection = el('#adminSection');
+  const closeAdminBtn = el('#closeAdminBtn');
+  const adminFileInput = el('#adminFileInput');
+  const adminFileUploadBtn = el('#adminFileUploadBtn');
+  const adminFileStatus = el('#adminFileStatus');
+  const allChatsContainer = el('#allChatsContainer');
+  const refreshAdminBtn = el('#refreshAdminBtn');
+  const totalChatsCount = el('#totalChatsCount');
+  const totalUsersCount = el('#totalUsersCount');
+  const totalMessagesCount = el('#totalMessagesCount');
+  const uploadedFilesCount = el('#uploadedFilesCount');
+  const uploadedSourcesList = el('#uploadedSourcesList');
 
-  const CHATS_KEY = 'chatbot.chats.v2';
-  const CURRENT_CHAT_KEY = 'chatbot.currentChat.v2';
+  // Kullanıcı bilgilerini al
+  const username = localStorage.getItem('username') || 'Kullanıcı';
+  const userRole = localStorage.getItem('userRole') || 'user';
+  const isAdmin = userRole === 'admin';
+  
+  // Admin ise admin paneline yönlendir
+  if (isAdmin) {
+    window.location.href = '/admin.html';
+    return;
+  }
+
+  // Role bazlı localStorage keys
+  const CHATS_KEY = isAdmin ? 'chatbot.allChats.admin' : `chatbot.chats.${username}`;
+  const CURRENT_CHAT_KEY = `chatbot.currentChat.${username}`;
   const AVATAR_KEY = 'chatbot.avatar.v1';
   const MODEL_KEY = 'chatbot.model.v1';
 
@@ -54,6 +90,7 @@
     }
     chats[currentChatId] = {
       id: currentChatId,
+      username: username,
       history: history,
       fileUri: currentFileUri,
       fileName: currentFileName,
@@ -90,7 +127,16 @@
   
   function renderHistoryList(){
     if(!historyList) return;
-    const chatArray = Object.values(chats).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    
+    // Admin tüm sohbetleri görsün, normal kullanıcılar sadece kendi sohbetlerini görsün
+    let displayChats = Object.values(chats);
+    
+    if (!isAdmin) {
+      // Sadece kendi sohbetlerini göster
+      displayChats = displayChats.filter(chat => chat.username === username);
+    }
+    
+    const chatArray = displayChats.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
     
     if(chatArray.length === 0){
       historyList.innerHTML = '<div class="history-item-empty">Henüz sohbet yok</div>';
@@ -101,9 +147,13 @@
       const date = new Date(chat.updatedAt);
       const dateStr = date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
       const isActive = chat.id === currentChatId ? 'active' : '';
+      
+      // Admin görüntüsü: kullanıcı adını göster
+      const titleText = isAdmin && chat.username ? `${chat.username}: ${chat.title || 'Yeni Sohbet'}` : (chat.title || 'Yeni Sohbet');
+      
       return `
         <div class="history-item ${isActive}" data-chat-id="${chat.id}">
-          <div class="history-item-title">${chat.title || 'Yeni Sohbet'}</div>
+          <div class="history-item-title">${titleText}</div>
           <div class="history-item-date">${dateStr}</div>
         </div>
       `;
@@ -177,7 +227,8 @@
         const opts = [
           {v:'gemini-2.5-flash', t:'gemini-2.5-flash'},
           {v:'gemini-2.5-flash-lite', t:'gemini-2.5-flash-lite'},
-          {v:'gemini-1.5-flash', t:'gemini-1.5-flash'}
+          {v:'gemini-3-flash', t:'gemini-3-flash'},
+          {v:'gemini-1.5-pro', t:'gemini-1.5-pro'}
         ];
         modelSelect.innerHTML = opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
         const def = localStorage.getItem(MODEL_KEY) || info.model || 'gemini-2.5-flash';
@@ -208,6 +259,12 @@
     } else {
       history.forEach(addMessageEl);
     }
+    
+    // Dosya yükleme butonunu kontrol et
+    if (fileUploadBtn) {
+      fileUploadBtn.style.display = isAdmin ? 'block' : 'none';
+    }
+    
     scrollToBottom();
   }
 
@@ -347,20 +404,32 @@
         scrollToBottom();
       }).catch((err) => {
         console.error('Döküman bazlı chat hatası:', err);
-        // Hata durumunda normal chat'e düş
-        aiReply(history).then(botText => {
-          const reply = { who: 'bot', text: botText };
-          history.push(reply);
+        // Hata mesajını kullanıcıya göster
+        const errorText = err.message || 'Döküman ile chat sırasında hata oluştu.';
+        
+        // Rate limit veya dosya hatası varsa fallback yapma
+        if (errorText.includes('limit') || errorText.includes('429') || errorText.includes('Desteklenmeyen')) {
+          const errorReply = { who: 'bot', text: '❌ ' + errorText };
+          history.push(errorReply);
           persist();
-          addMessageEl(reply);
-          messagesEl.scrollTop = messagesEl.scrollHeight;
-        }).catch(() => {
-          const fallback = { who: 'bot', text: makeReply(text) };
-          history.push(fallback);
-          persist();
-          addMessageEl(fallback);
-          messagesEl.scrollTop = messagesEl.scrollHeight;
-        });
+          addMessageEl(errorReply);
+          scrollToBottom();
+        } else {
+          // Diğer hatalar için normal chat'e düş
+          aiReply(history).then(botText => {
+            const reply = { who: 'bot', text: botText };
+            history.push(reply);
+            persist();
+            addMessageEl(reply);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          }).catch(() => {
+            const fallback = { who: 'bot', text: makeReply(text) };
+            history.push(fallback);
+            persist();
+            addMessageEl(fallback);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          });
+        }
       });
     } else {
       // Call backend for AI response
@@ -370,8 +439,11 @@
         persist();
         addMessageEl(reply);
         scrollToBottom();
-      }).catch(() => {
-        const fallback = { who: 'bot', text: makeReply(text) };
+      }).catch((err) => {
+        console.error('AI reply error:', err);
+        // Hata mesajını kullanıcıya göster
+        const errorText = err.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
+        const fallback = { who: 'bot', text: '❌ ' + errorText };
         history.push(fallback);
         persist();
         addMessageEl(fallback);
@@ -404,7 +476,24 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ctrl.signal
         });
         clearTimeout(t);
-        if(!resp.ok) throw new Error(await resp.text());
+        
+        if(!resp.ok) {
+          const errorText = await resp.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            throw new Error(errorText);
+          }
+          
+          // Rate limit hatası
+          if (resp.status === 429) {
+            throw new Error('⚠️ Gemini API kullanım limiti aşıldı. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+          }
+          
+          throw new Error(errorData.details || errorData.error || errorText);
+        }
+        
         const data = await resp.json();
         if(!data || typeof data.content !== 'string' || !data.content.trim()) throw new Error('empty_response');
         return data.content.trim();
@@ -440,7 +529,24 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ctrl.signal
         });
         clearTimeout(t);
-        if(!resp.ok) throw new Error(await resp.text());
+        
+        if(!resp.ok) {
+          const errorText = await resp.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            throw new Error(errorText);
+          }
+          
+          // Rate limit hatası
+          if (resp.status === 429) {
+            throw new Error('⚠️ Gemini API kullanım limiti aşıldı. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+          }
+          
+          throw new Error(errorData.details || errorData.error || errorText);
+        }
+        
         const data = await resp.json();
         if(!data || typeof data.content !== 'string' || !data.content.trim()) throw new Error('empty_response');
         return data.content.trim();
@@ -463,8 +569,16 @@
   async function uploadFile(file){
     if(!file) return;
 
+    // Admin kontrolü
+    if (!isAdmin) {
+      alert('Dosya yükleme sadece Admin tarafından yapılabilir');
+      updateFileStatus(null, false);
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('uploadedBy', username);
 
     const origins = [];
     if(location.origin && location.origin.startsWith('http')) origins.push(location.origin);
@@ -479,7 +593,11 @@
         const resp = await fetch(base + '/api/upload', {
           method: 'POST',
           body: formData,
-          signal: ctrl.signal
+          signal: ctrl.signal,
+          headers: {
+            'x-user-role': userRole,
+            'x-username': username
+          }
         });
         
         clearTimeout(t);
@@ -550,10 +668,20 @@
   
   // Dosya yükleme butonu event listener
   if(fileUploadBtn && fileInput){
-    fileUploadBtn.addEventListener('click', () => fileInput.click());
+    fileUploadBtn.addEventListener('click', () => {
+      if (!isAdmin) {
+        alert('Dosya yükleme sadece Admin tarafından yapılabilir');
+        return;
+      }
+      fileInput.click();
+    });
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if(file){
+        if (!isAdmin) {
+          alert('Dosya yükleme sadece Admin tarafından yapılabilir');
+          return;
+        }
         updateFileStatus('Yükleniyor...', false);
         await uploadFile(file);
       }
@@ -599,6 +727,16 @@
     localStorage.setItem(AVATAR_KEY, dataUrl);
   });
 
+  // Logout işlemi
+  logoutBtn.addEventListener('click', () => {
+    if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
+      window.location.href = '/login.html';
+    }
+  });
+
   function toDataURL(file){
     return new Promise(res=>{
       const reader = new FileReader();
@@ -616,5 +754,216 @@
     });
   }
 
+  // Kullanıcı bilgilerini göster
+  if (userInfoEl) {
+    userInfoEl.textContent = `${username} (${userRole === 'admin' ? 'Admin' : 'Kullanıcı'})`;
+  }
+
+  // Greeting'i güncelle
+  if (greetingEl) {
+    greetingEl.textContent = `Merhaba, ${username}`;
+  }
+
+  // Sidebar tabs kontrolleri (sadece admin için göster)
+  if (isAdmin && sidebarTabs) {
+    sidebarTabs.style.display = 'flex';
+    
+    const tabButtons = document.querySelectorAll('.sidebar-tab');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        
+        // Aktif tab'ı güncelle
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Sections'ı güncelle
+        historySection.classList.remove('active');
+        adminSection.classList.remove('active');
+        
+        if (tabName === 'history') {
+          historySection.classList.add('active');
+        } else {
+          adminSection.classList.add('active');
+          updateAdminStats();
+          renderAllChats();
+        }
+      });
+    });
+  }
+  
+  // Admin tab close butonu
+  if (closeAdminBtn) {
+    closeAdminBtn.addEventListener('click', () => {
+      historySidebar.classList.remove('open');
+    });
+  }
+  
+  // Admin dosya yükleme
+  if (adminFileUploadBtn && adminFileInput) {
+    adminFileUploadBtn.addEventListener('click', () => {
+      adminFileInput.click();
+    });
+    
+    adminFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        adminFileStatus.textContent = '⏳ Yükleniyor...';
+        adminFileStatus.style.color = '#666';
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('uploadedBy', username);
+        
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'x-user-role': userRole,
+              'x-username': username
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            adminFileStatus.textContent = `✅ Başarıyla yüklendi: ${data.fileName}`;
+            adminFileStatus.style.color = '#4CAF50';
+            updateAdminStats();
+            loadUploadedSources(); // Yüklenen kaynakları yenile
+          } else {
+            adminFileStatus.textContent = '❌ Yükleme başarısız';
+            adminFileStatus.style.color = '#dc3545';
+          }
+        } catch (error) {
+          console.error('Admin file upload error:', error);
+          adminFileStatus.textContent = '❌ Hata oluştu';
+          adminFileStatus.style.color = '#dc3545';
+        }
+        
+        e.target.value = '';
+      }
+    });
+  }
+  
+  // Admin refresh butonu
+  if (refreshAdminBtn) {
+    refreshAdminBtn.addEventListener('click', () => {
+      refreshAdminBtn.textContent = '⏳ Yükleniyor...';
+      updateAdminStats();
+      renderAllChats();
+      setTimeout(() => {
+        refreshAdminBtn.textContent = '🔄 Verileri Yenile';
+      }, 500);
+    });
+  }
+  
+  // Admin istatistiklerini güncelle
+  function updateAdminStats() {
+    const chatValues = Object.values(chats);
+    const totalChats = chatValues.length;
+    const userSet = new Set(chatValues.map(c => c.username));
+    const totalUsers = userSet.size;
+    let totalMessages = 0;
+    let uploadedFiles = 0;
+    
+    chatValues.forEach(chat => {
+      totalMessages += (chat.history || []).length;
+      if (chat.fileName) uploadedFiles++;
+    });
+    
+    if (totalChatsCount) totalChatsCount.textContent = totalChats;
+    if (totalUsersCount) totalUsersCount.textContent = totalUsers;
+    if (totalMessagesCount) totalMessagesCount.textContent = totalMessages;
+    if (uploadedFilesCount) uploadedFilesCount.textContent = uploadedFiles;
+  }
+  
+  // Tüm sohbetleri renderla
+  function renderAllChats() {
+    if (!allChatsContainer) return;
+    
+    const chatValues = Object.values(chats).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    
+    allChatsContainer.innerHTML = '';
+    
+    if (chatValues.length === 0) {
+      allChatsContainer.innerHTML = '<div style="padding:20px; text-align:center; color:var(--muted); font-size:12px;">Henüz sohbet yok</div>';
+      return;
+    }
+    
+    chatValues.forEach(chat => {
+      const userMsg = (chat.history || []).find(m => m.who === 'me');
+      const userQuestion = userMsg ? userMsg.text.substring(0, 100) : 'Sohbet yok';
+      const date = new Date(chat.updatedAt);
+      const dateStr = date.toLocaleDateString('tr-TR') + ' ' + date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      
+      const chatEl = document.createElement('div');
+      chatEl.className = 'chat-item';
+      chatEl.innerHTML = `
+        <div class="chat-item-username">👤 ${chat.username || 'Bilinmeyen'}</div>
+        <div class="chat-item-text">${userQuestion}${userQuestion.length === 100 ? '...' : ''}</div>
+        <div class="chat-item-meta">📅 ${dateStr} | 💬 ${(chat.history || []).length} mesaj</div>
+      `;
+      allChatsContainer.appendChild(chatEl);
+    });
+  }
+  
+  // Yüklenen kaynakları yükle ve göster
+  async function loadUploadedSources() {
+    if (!uploadedSourcesList) return;
+    
+    uploadedSourcesList.innerHTML = '<div class="no-sources">⏳ Yükleniyor...</div>';
+    
+    try {
+      const response = await fetch('/api/uploaded-files', {
+        headers: {
+          'x-user-role': userRole,
+          'x-username': username
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Dosya listesi alınamadı');
+      }
+      
+      const data = await response.json();
+      const files = data.files || [];
+      
+      if (files.length === 0) {
+        uploadedSourcesList.innerHTML = '<div class="no-sources">Henüz kaynak yüklenmedi</div>';
+        return;
+      }
+      
+      uploadedSourcesList.innerHTML = '';
+      files.forEach(file => {
+        const date = new Date(file.uploadedAt);
+        const dateStr = date.toLocaleDateString('tr-TR') + ' ' + date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        const sizeKB = file.fileSize ? (file.fileSize / 1024).toFixed(2) : '?';
+        
+        const sourceEl = document.createElement('div');
+        sourceEl.className = 'source-item';
+        sourceEl.innerHTML = `
+          <div class="source-icon">📄</div>
+          <div class="source-info">
+            <div class="source-name">${file.fileName}</div>
+            <div class="source-meta">
+              👤 ${file.uploadedBy} | 📅 ${dateStr} | 💾 ${sizeKB} KB
+            </div>
+          </div>
+        `;
+        uploadedSourcesList.appendChild(sourceEl);
+      });
+      
+      // Yüklü dosya sayısını güncelle
+      if (uploadedFilesCount) {
+        uploadedFilesCount.textContent = files.length;
+      }
+    } catch (error) {
+      console.error('Kaynak listesi hatası:', error);
+      uploadedSourcesList.innerHTML = '<div class="no-sources" style="color: #dc3545;">❌ Yüklenirken hata oluştu</div>';
+    }
+  }
+
   render();
 })();
+
