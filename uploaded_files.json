@@ -1,18 +1,50 @@
 [
   {
-    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/x7je4tja94sc",
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/cnhl4mrdxqrp",
+    "fileName": "YOLO-BASED ASSEMBLY LINE MONITORING REAL-TIME OBJECT DETECTION FOR TASK TRACKING AND PROCESS ANALYSIS.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-22T06:49:32.131Z",
+    "fileSize": 348654
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/gn8u8s9u8fto",
+    "fileName": "OTEP _ yazilim insan kanyaklari sunumu _ 2023 Ekim.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-22T10:02:59.824Z",
+    "fileSize": 860426
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/2hmtgcn6cyia",
+    "fileName": "BY634_RL_25MY_Tailgate_Electronics_Failures_LIN_messages_0070.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-22T10:09:33.862Z",
+    "fileSize": 109890
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/igd9erlzl04g",
     "fileName": "kaynak.txt",
     "mimeType": "text/plain",
     "uploadedBy": "admin",
-    "uploadedAt": "2025-12-20T18:35:35.891Z",
-    "fileSize": 1557
+    "uploadedAt": "2025-12-22T11:27:37.622Z",
+    "fileSize": 5736
   },
   {
-    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/6n33mjyi0i4z",
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/fnuwsyeyb3s4",
+    "fileName": "Due-pinout-A4-spanish-grande.jpg",
+    "mimeType": "image/jpeg",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-23T07:34:03.546Z",
+    "fileSize": 972745
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/8nveyjpwk55g",
     "fileName": "12_25_251201_172316.pdf",
     "mimeType": "application/pdf",
     "uploadedBy": "admin",
-    "uploadedAt": "2025-12-20T18:35:43.633Z",
+    "uploadedAt": "2025-12-23T07:46:11.608Z",
     "fileSize": 74028
   }
 ]

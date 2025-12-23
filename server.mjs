@@ -47,6 +47,98 @@ if (GEMINI_API_KEY) {
   fileManager = new GoogleAIFileManager(GEMINI_API_KEY);
 }
 
+// ==================== CACHING SİSTEMİ ====================
+// Response cache - aynı sorular için hızlı cevap
+const responseCache = new Map();
+const CACHE_TTL = 30 * 60 * 1000; // 30 dakika
+const MAX_CACHE_SIZE = 100; // Maksimum cache sayısı
+
+// Dosya session cache - dosyalar bir kez yüklenip cache'leniyor
+let cachedFileSession = null;
+let cachedFilesHash = null; // Dosya değişikliğini takip için
+
+// Cache helper fonksiyonları
+function getCacheKey(messages, model) {
+  const lastMessage = messages[messages.length - 1]?.content || '';
+  return `${model}:${lastMessage.substring(0, 200)}`;
+}
+
+function getFromCache(key) {
+  const cached = responseCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log('📦 Cache hit:', key.substring(0, 50));
+    return cached.response;
+  }
+  if (cached) {
+    responseCache.delete(key); // Expired cache'i sil
+  }
+  return null;
+}
+
+function setCache(key, response) {
+  // Cache boyutunu kontrol et
+  if (responseCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = responseCache.keys().next().value;
+    responseCache.delete(firstKey);
+  }
+  responseCache.set(key, { response, timestamp: Date.now() });
+  console.log('💾 Cached:', key.substring(0, 50));
+}
+
+// Dosya hash'i hesapla - dosyalar değişti mi kontrol için
+function calculateFilesHash(files) {
+  if (!files || files.length === 0) return null;
+  const content = files.map(f => `${f.fileUri}-${f.uploadedAt}`).join('|');
+  return crypto.createHash('md5').update(content).digest('hex');
+}
+
+// Dosya session'ını başlat veya cache'den al
+async function getFileSession(model, uploadedFiles) {
+  const currentHash = calculateFilesHash(uploadedFiles);
+  
+  // Dosyalar değişmediyse mevcut session'ı kullan
+  if (cachedFileSession && cachedFilesHash === currentHash) {
+    console.log('⚡ Mevcut dosya session kullanılıyor (cache)');
+    return cachedFileSession;
+  }
+  
+  // Yeni session oluştur
+  console.log('🔄 Yeni dosya session oluşturuluyor...');
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  const modelClient = genAI.getGenerativeModel({ model });
+  
+  // TÜM dosyaları içeren başlangıç prompt'u
+  const fileNames = uploadedFiles.map(f => f.fileName).join(', ');
+  const systemPrompt = `Sen yardımcı bir asistansın. Kullanıcının sorularını yüklenen ${uploadedFiles.length} döküman içeriğine göre cevapla. Dökümanlar: ${fileNames}. Türkçe cevap ver. Cevabını döküman içeriğine dayandır.`;
+  
+  // TÜM dosyaları içeren content parts
+  const contentParts = [systemPrompt];
+  uploadedFiles.forEach(file => {
+    contentParts.push({
+      fileData: {
+        mimeType: file.mimeType,
+        fileUri: file.fileUri
+      }
+    });
+  });
+  
+  // Cache'le
+  cachedFileSession = { modelClient, contentParts, fileNames };
+  cachedFilesHash = currentHash;
+  
+  console.log(`✅ Dosya session hazır (${uploadedFiles.length} dosya)`);
+  return cachedFileSession;
+}
+
+// Dosya cache'ini temizle (dosya eklendiğinde/silindiğinde)
+function invalidateFileCache() {
+  cachedFileSession = null;
+  cachedFilesHash = null;
+  responseCache.clear(); // Response cache'i de temizle
+  console.log('🗑️ Dosya ve response cache temizlendi');
+}
+// ==================== CACHING SİSTEMİ SONU ====================
+
 // Login Endpoint
 app.post('/api/login', async (req, res) => {
   try {
@@ -153,6 +245,129 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
+// ==================== STREAMING CHAT ENDPOINT ====================
+app.post('/api/chat-stream', async (req, res) => {
+  try {
+    const { messages, model } = req.body || {};
+    if (!Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages must be an array' });
+    }
+
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY missing on server' });
+    }
+
+    const gemModel = model || DEFAULT_MODEL;
+
+    // 🔍 Önce cache'e bak
+    const cacheKey = getCacheKey(messages, gemModel);
+    const cachedResponse = getFromCache(cacheKey);
+    if (cachedResponse) {
+      // Cache hit - tek seferde gönder
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.write(`data: ${JSON.stringify({ text: cachedResponse, done: false, cached: true })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      return res.end();
+    }
+
+    // SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Admin'in yüklediği dosyaları kontrol et
+    const uploadedFilesPath = path.join(__dirname, 'uploaded_files.json');
+    let uploadedFiles = [];
+    if (fs.existsSync(uploadedFilesPath)) {
+      uploadedFiles = JSON.parse(fs.readFileSync(uploadedFilesPath, 'utf-8'));
+    }
+
+    // Son mesajı al
+    const latest = messages[messages.length - 1] || { role: 'user', content: '' };
+    const latestText = String(latest.content || '');
+
+    let fullResponse = '';
+
+    // Dosyalarla streaming
+    if (uploadedFiles.length > 0) {
+      try {
+        const fileSession = await getFileSession(gemModel, uploadedFiles);
+        const queryParts = [...fileSession.contentParts, latestText];
+        
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        const modelClient = genAI.getGenerativeModel({ model: gemModel });
+        
+        // Streaming response
+        const result = await modelClient.generateContentStream(queryParts);
+        
+        for await (const chunk of result.stream) {
+          const text = chunk.text();
+          if (text) {
+            fullResponse += text;
+            res.write(`data: ${JSON.stringify({ text, done: false })}\n\n`);
+          }
+        }
+        
+        // Cache'le
+        if (fullResponse) {
+          setCache(cacheKey, fullResponse);
+        }
+        
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        return res.end();
+      } catch (fileErr) {
+        console.log('Streaming dosya hatası:', fileErr.message);
+        if (fileErr.message && (fileErr.message.includes('429') || fileErr.message.includes('quota'))) {
+          res.write(`data: ${JSON.stringify({ error: 'Rate limit aşıldı. Lütfen bekleyin.', done: true })}\n\n`);
+          return res.end();
+        }
+        invalidateFileCache();
+      }
+    }
+
+    // Normal streaming (dosya yoksa)
+    try {
+      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+      const modelClient = genAI.getGenerativeModel({ model: gemModel });
+      
+      const historyMsgs = messages.slice(0, -1);
+      const history = historyMsgs.map(m => ({ 
+        role: m.role === 'assistant' ? 'model' : 'user', 
+        parts: [{ text: String(m.content || '') }] 
+      }));
+      
+      const chat = modelClient.startChat({ history });
+      const result = await chat.sendMessageStream(latestText);
+      
+      for await (const chunk of result.stream) {
+        const text = chunk.text();
+        if (text) {
+          fullResponse += text;
+          res.write(`data: ${JSON.stringify({ text, done: false })}\n\n`);
+        }
+      }
+      
+      // Cache'le
+      if (fullResponse) {
+        setCache(cacheKey, fullResponse);
+      }
+      
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    } catch (e) {
+      console.error('Streaming error:', e);
+      res.write(`data: ${JSON.stringify({ error: e.message || 'Hata oluştu', done: true })}\n\n`);
+      res.end();
+    }
+  } catch (err) {
+    console.error('Stream chat error:', err);
+    res.status(500).json({ error: 'unexpected_error', details: String(err?.message || err) });
+  }
+});
+// ==================== STREAMING SONU ====================
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, model } = req.body || {};
@@ -166,6 +381,13 @@ app.post('/api/chat', async (req, res) => {
         return res.status(500).json({ error: 'GEMINI_API_KEY missing on server' });
       }
       const gemModel = model || DEFAULT_MODEL;
+
+      // 🔍 Önce cache'e bak
+      const cacheKey = getCacheKey(messages, gemModel);
+      const cachedResponse = getFromCache(cacheKey);
+      if (cachedResponse) {
+        return res.json({ content: cachedResponse, cached: true });
+      }
 
       // Admin'in yüklediği dosyaları kontrol et
       const uploadedFilesPath = path.join(__dirname, 'uploaded_files.json');
@@ -182,32 +404,21 @@ app.post('/api/chat', async (req, res) => {
       const history = historyMsgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: String(m.content || '') }] }));
       const latestText = String(latest.content || '');
 
-      // Eğer dosyalar yüklenmişse, TÜM dosyaları bilgi havuzu olarak kullan
+      // Eğer dosyalar yüklenmişse, CACHE'Lİ SESSION kullan
       if (uploadedFiles.length > 0) {
         try {
-          const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-          const modelClient = genAI.getGenerativeModel({ model: gemModel });
+          // ⚡ Cache'li dosya session'ını al
+          const fileSession = await getFileSession(gemModel, uploadedFiles);
           
-          // TÜM dosyaları içeren prompt oluştur
-          const fileNames = uploadedFiles.map(f => f.fileName).join(', ');
-          const systemPrompt = `Sen yardımcı bir asistansın. Kullanıcının sorularını yüklenen ${uploadedFiles.length} döküman içeriğine göre cevapla. Dökümanlar: ${fileNames}. Türkçe cevap ver. Cevabını döküman içeriğine dayandır.`;
+          // Sadece kullanıcı sorusunu ekle (dosyalar zaten session'da)
+          const queryParts = [...fileSession.contentParts, latestText];
           
-          // TÜM dosyaları parts dizisine ekle
-          const contentParts = [systemPrompt];
-          
-          uploadedFiles.forEach(file => {
-            contentParts.push({
-              fileData: {
-                mimeType: file.mimeType,
-                fileUri: file.fileUri
-              }
-            });
-          });
-          
-          contentParts.push(latestText);
-          
-          const result = await modelClient.generateContent(contentParts);
+          const result = await fileSession.modelClient.generateContent(queryParts);
           const text = result.response?.text?.() ?? '';
+          
+          // 💾 Başarılı cevabı cache'le
+          setCache(cacheKey, text);
+          
           return res.json({ content: text });
         } catch (fileErr) {
           console.log('Dosyalar ile chat başarısız, normal chat\'e geçiliyor:', fileErr.message);
@@ -227,7 +438,8 @@ app.post('/api/chat', async (req, res) => {
             });
           }
           
-          // Diğer hatalar için normal chat'e düş
+          // Cache'i temizle ve tekrar dene
+          invalidateFileCache();
         }
       }
 
@@ -238,6 +450,10 @@ app.post('/api/chat', async (req, res) => {
         const chat = modelClient.startChat({ history });
         const result = await chat.sendMessage(latestText);
         const text = result.response?.text?.() ?? '';
+        
+        // 💾 Başarılı cevabı cache'le
+        setCache(cacheKey, text);
+        
         return res.json({ content: text });
       } catch (e) {
         // Model varyantlarını dene (Aralık 2025 güncel modeller)
@@ -269,6 +485,8 @@ app.post('/api/chat', async (req, res) => {
             const parts = data?.candidates?.[0]?.content?.parts || [];
             const text = parts.map(p => p?.text || '').join('\n').trim();
             if (text) {
+              // 💾 Başarılı cevabı cache'le
+              setCache(cacheKey, text);
               return res.json({ content: text });
             }
           } catch (err) { 
@@ -412,6 +630,10 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     
     fs.writeFileSync(uploadedFilesPath, JSON.stringify(uploadedFiles, null, 2));
 
+    // 🗑️ Yeni dosya yüklendiğinde cache'i temizle
+    invalidateFileCache();
+    console.log('✅ Dosya yüklendi ve cache temizlendi');
+
     res.json({ 
       fileUri: uploadResponse.file.uri,
       fileName: req.file.originalname,
@@ -478,6 +700,10 @@ app.delete('/api/delete-file', async (req, res) => {
     // Dosyayı listeden kaldır
     uploadedFiles.splice(index, 1);
     fs.writeFileSync(uploadedFilesPath, JSON.stringify(uploadedFiles, null, 2));
+    
+    // 🗑️ Dosya silindiğinde cache'i temizle
+    invalidateFileCache();
+    console.log('✅ Dosya silindi ve cache temizlendi');
     
     res.json({ success: true });
   } catch (error) {
@@ -625,10 +851,50 @@ app.post('/api/chat-with-doc', async (req, res) => {
   }
 });
 
+// Cache istatistikleri endpoint'i (sadece admin)
+app.get('/api/cache-stats', async (req, res) => {
+  try {
+    const userRole = req.headers['x-user-role'] || 'user';
+    
+    if (userRole !== 'admin') {
+      return res.status(403).json({ error: 'Bu endpoint sadece Admin tarafından erişilebilir.' });
+    }
+
+    res.json({
+      responseCacheSize: responseCache.size,
+      maxCacheSize: MAX_CACHE_SIZE,
+      cacheTTL: CACHE_TTL / 1000 / 60 + ' dakika',
+      fileSessionActive: cachedFileSession !== null,
+      fileSessionHash: cachedFilesHash
+    });
+  } catch (error) {
+    console.error('Cache stats error:', error);
+    res.status(500).json({ error: 'Cache istatistikleri alınırken hata oluştu.' });
+  }
+});
+
+// Cache temizleme endpoint'i (sadece admin)
+app.post('/api/clear-cache', async (req, res) => {
+  try {
+    const userRole = req.headers['x-user-role'] || 'user';
+    
+    if (userRole !== 'admin') {
+      return res.status(403).json({ error: 'Bu endpoint sadece Admin tarafından erişilebilir.' });
+    }
+
+    invalidateFileCache();
+    res.json({ success: true, message: 'Tüm cache temizlendi.' });
+  } catch (error) {
+    console.error('Cache clear error:', error);
+    res.status(500).json({ error: 'Cache temizlenirken hata oluştu.' });
+  }
+});
+
 app.get('/api/health', (req,res)=>{
   res.json({ ok: true, provider: PROVIDER, model: DEFAULT_MODEL });
 });
 
 app.listen(PORT, () => {
   console.log(`Server on http://localhost:${PORT}`);
+  console.log('📦 Caching sistemi aktif (30 dakika TTL, max 100 entry)');
 });

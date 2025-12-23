@@ -357,10 +357,15 @@
     const who = document.createElement('div');
     who.className = 'who';
     const img = document.createElement('img');
-    const currentAvatar = localStorage.getItem(AVATAR_KEY) || 'assets/Medya.png';
-    // Use the same avatar image for both sides as requested
-    img.src = currentAvatar;
-    img.alt = msg.who === 'me' ? 'Ben' : 'Bot';
+    
+    // User messages use user.png, bot messages use robot
+    if (msg.who === 'me') {
+      img.src = 'assets/user.png';
+      img.alt = 'Ben';
+    } else {
+      img.src = 'assets/Medya.png';
+      img.alt = 'Bot';
+    }
     who.appendChild(img);
 
     const bubble = document.createElement('div');
@@ -394,62 +399,126 @@
     inputEl.value='';
     scrollToBottom();
 
-    // Eğer dosya yüklüyse döküman bazlı chat kullan, değilse normal chat
-    if(currentFileUri) {
-      aiReplyWithDoc(history, text).then(botText => {
-        const reply = { who: 'bot', text: botText };
-        history.push(reply);
-        persist();
-        addMessageEl(reply);
-        scrollToBottom();
-      }).catch((err) => {
-        console.error('Döküman bazlı chat hatası:', err);
-        // Hata mesajını kullanıcıya göster
-        const errorText = err.message || 'Döküman ile chat sırasında hata oluştu.';
-        
-        // Rate limit veya dosya hatası varsa fallback yapma
-        if (errorText.includes('limit') || errorText.includes('429') || errorText.includes('Desteklenmeyen')) {
-          const errorReply = { who: 'bot', text: '❌ ' + errorText };
-          history.push(errorReply);
-          persist();
-          addMessageEl(errorReply);
-          scrollToBottom();
-        } else {
-          // Diğer hatalar için normal chat'e düş
-          aiReply(history).then(botText => {
-            const reply = { who: 'bot', text: botText };
-            history.push(reply);
-            persist();
-            addMessageEl(reply);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-          }).catch(() => {
-            const fallback = { who: 'bot', text: makeReply(text) };
-            history.push(fallback);
-            persist();
-            addMessageEl(fallback);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-          });
+    // Streaming ile cevap al
+    aiReplyStream(history).catch((err) => {
+      console.error('Streaming chat hatası:', err);
+      const errorText = err.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      const errorReply = { who: 'bot', text: '❌ ' + errorText };
+      history.push(errorReply);
+      persist();
+      addMessageEl(errorReply);
+      scrollToBottom();
+    });
+  }
+
+  // Streaming AI Reply fonksiyonu
+  async function aiReplyStream(history) {
+    const mapped = history.map(m => ({
+      role: m.who === 'me' ? 'user' : (m.who === 'bot' ? 'assistant' : 'system'),
+      content: m.text
+    }));
+    const systemPreface = { role: 'system', content: 'You are a helpful assistant. Reply concisely in Turkish unless the user uses another language.' };
+    const body = JSON.stringify({ 
+      messages: [systemPreface, ...mapped.slice(-20)], 
+      model: (modelSelect ? modelSelect.value : localStorage.getItem(MODEL_KEY) || 'gemini-2.5-flash') 
+    });
+
+    const origins = [];
+    if(location.origin && location.origin.startsWith('http')) origins.push(location.origin);
+    origins.push('http://localhost:5280','http://127.0.0.1:5280');
+
+    // Bot mesaj balonunu hemen oluştur
+    const botMsg = { who: 'bot', text: '' };
+    const row = document.createElement('div');
+    row.className = 'msg';
+    
+    const who = document.createElement('div');
+    who.className = 'who';
+    const img = document.createElement('img');
+    img.src = 'assets/Medya.png';
+    img.alt = 'Bot';
+    who.appendChild(img);
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = '<span class="typing-indicator">●●●</span>';
+    
+    row.appendChild(who);
+    row.appendChild(bubble);
+    messagesEl.appendChild(row);
+    scrollToBottom();
+
+    let fullText = '';
+    let lastErr;
+
+    for(const base of origins){
+      try {
+        const resp = await fetch(base + '/api/chat-stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body
+        });
+
+        if(!resp.ok) {
+          const errorText = await resp.text();
+          throw new Error(errorText);
         }
-      });
-    } else {
-      // Call backend for AI response
-      aiReply(history).then(botText => {
-        const reply = { who: 'bot', text: botText };
-        history.push(reply);
-        persist();
-        addMessageEl(reply);
-        scrollToBottom();
-      }).catch((err) => {
-        console.error('AI reply error:', err);
-        // Hata mesajını kullanıcıya göster
-        const errorText = err.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
-        const fallback = { who: 'bot', text: '❌ ' + errorText };
-        history.push(fallback);
-        persist();
-        addMessageEl(fallback);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-      });
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+
+        while(true) {
+          const { done, value } = await reader.read();
+          if(done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for(const line of lines) {
+            if(line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if(data.error) {
+                  throw new Error(data.error);
+                }
+                
+                if(data.text) {
+                  fullText += data.text;
+                  bubble.innerHTML = formatMessage(fullText);
+                  scrollToBottom();
+                }
+                
+                if(data.done) {
+                  if(fullText) {
+                    botMsg.text = fullText;
+                    history.push(botMsg);
+                    persist();
+                  }
+                  return fullText;
+                }
+              } catch(e) {
+                // JSON parse hatası, devam et
+              }
+            }
+          }
+        }
+
+        if(fullText) {
+          botMsg.text = fullText;
+          history.push(botMsg);
+          persist();
+          return fullText;
+        }
+      } catch(e) {
+        lastErr = e;
+        console.error('Stream error for', base, e);
+      }
     }
+
+    // Tüm origin'ler başarısız oldu, fallback
+    bubble.innerHTML = '';
+    throw lastErr || new Error('Bağlantı kurulamadı');
   }
 
   function makeReply(text){
