@@ -1,28 +1,28 @@
 # Python Backend Dependencies for ChatBot RAG System
 
 # Core Environment Management
-python-dotenv==1.0.1
+python-dotenv
 
 # Google AI & LLM Integration
-google-generativeai==0.10.1
-langchain==0.3.19
-langchain-core==0.3.26
-langchain-google-genai==2.0.10
+google-generativeai
+langchain
+langchain-core
+langchain-google-genai
 
 # Document Processing & Embeddings
-langchain-community==0.3.19
-langchain-chroma==0.2.0
-chromadb==0.5.24
-PyPDF2==3.0.1
+langchain-community
+langchain-chroma
+chromadb
+PyPDF2
 
 # Semantic Processing
-semantic-router==0.1.0
-semantic-chunkers==0.1.3
+semantic-router
+semantic-chunkers
 
 # Utilities
-pydantic==2.10.4
-python-multipart==0.0.9
+pydantic
+python-multipart
 
-# Optional: Web Framework (if needed for Python API)
-fastapi==0.115.17
-uvicorn==0.38.0
+# Web Framework
+fastapi
+uvicorn

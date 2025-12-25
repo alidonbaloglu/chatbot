@@ -159,6 +159,24 @@
     </select>
   </div>
 
+  <!-- Custom Confirm Modal -->
+  <div id="confirmModal" class="feka-modal" style="display:none;">
+    <div class="feka-modal-overlay"></div>
+    <div class="feka-modal-content feka-modal-confirm">
+      <div class="feka-modal-header">
+        <h3 id="confirmModalTitle">Onay</h3>
+        <button id="closeConfirmModalBtn" class="feka-modal-close">✕</button>
+      </div>
+      <div class="feka-modal-body">
+        <p id="confirmModalMessage" class="feka-confirm-message">Emin misiniz?</p>
+        <div class="feka-modal-actions">
+            <button id="confirmCancelBtn" class="feka-btn-secondary">İptal</button>
+            <button id="confirmOkBtn" class="feka-btn-danger">Evet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

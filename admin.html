@@ -1,17 +1,22 @@
 <!doctype html>
 <html lang="tr">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Paneli - FEKAi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <!-- Hidden inputs -->
-  <input id="adminFileInput" type="file" accept=".pdf,.txt,.csv,.png,.jpg,.jpeg,.gif,.webp,.mp3,.wav,.mp4,.avi,.mov" multiple hidden />
+  <input id="adminFileInput" type="file" accept=".pdf,.txt,.csv,.png,.jpg,.jpeg,.gif,.webp,.mp3,.wav,.mp4,.avi,.mov"
+    multiple hidden />
 
   <!-- Main Container -->
   <div class="feka-container">
@@ -30,7 +35,7 @@
       <div class="feka-admin-header">
         <h1>👑 Admin Paneli</h1>
       </div>
-      
+
       <!-- Stats Cards -->
       <div class="admin-stats-grid">
         <div class="admin-stat-card">
@@ -182,6 +187,25 @@
     </div>
   </div>
 
+  <!-- Custom Confirm Modal -->
+  <div id="confirmModal" class="feka-modal" style="display:none;">
+    <div class="feka-modal-overlay"></div>
+    <div class="feka-modal-content feka-modal-confirm">
+      <div class="feka-modal-header">
+        <h3 id="confirmModalTitle">Onay</h3>
+        <button id="closeConfirmModalBtn" class="feka-modal-close">✕</button>
+      </div>
+      <div class="feka-modal-body">
+        <p id="confirmModalMessage" class="feka-confirm-message">Emin misiniz?</p>
+        <div class="feka-modal-actions">
+          <button id="confirmCancelBtn" class="feka-btn-secondary">İptal</button>
+          <button id="confirmOkBtn" class="feka-btn-danger">Evet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="admin.js"></script>
 </body>
+
 </html>

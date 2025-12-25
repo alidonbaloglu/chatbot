@@ -1,18 +1,50 @@
 [
   {
-    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/fzcr4k9rk9ot",
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/rq6k8ayxygxe",
+    "fileName": "OTEP _ yazilim insan kanyaklari sunumu _ 2023 Ekim.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-25T10:27:39.714Z",
+    "fileSize": 860426
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/wwktoazzryrr",
+    "fileName": "ey-the-software-driven-revolution-redefining-the-automotive-industry-20-11-2023-10-19.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-25T10:36:11.316Z",
+    "fileSize": 2966087
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/aqv5f6pg9jtg",
     "fileName": "12_25_251201_172316.pdf",
     "mimeType": "application/pdf",
     "uploadedBy": "admin",
-    "uploadedAt": "2025-12-24T08:13:07.958Z",
+    "uploadedAt": "2025-12-25T10:36:52.558Z",
     "fileSize": 74028
   },
   {
-    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/acc9hwg2gqv1",
-    "fileName": "kaynak.txt",
-    "mimeType": "text/plain",
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/k33oubmhi3sw",
+    "fileName": "adt7420.pdf",
+    "mimeType": "application/pdf",
     "uploadedBy": "admin",
-    "uploadedAt": "2025-12-24T08:19:45.990Z",
-    "fileSize": 5754
+    "uploadedAt": "2025-12-25T10:37:41.011Z",
+    "fileSize": 445096
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/hqnehr64hi7k",
+    "fileName": "Datasheet_3901081113000_MLX81113_cu.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-25T10:41:42.433Z",
+    "fileSize": 4668608
+  },
+  {
+    "fileUri": "https://generativelanguage.googleapis.com/v1beta/files/t0zwvtqd5mo2",
+    "fileName": "Datasheet_3901081116000_MLX81116_cu.pdf",
+    "mimeType": "application/pdf",
+    "uploadedBy": "admin",
+    "uploadedAt": "2025-12-25T10:47:55.133Z",
+    "fileSize": 5441208
   }
 ]
