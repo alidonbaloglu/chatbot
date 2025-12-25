@@ -3,143 +3,161 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ChatBot</title>
+  <title>FEKA Chatbot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Top Bar with Avatar Slot -->
-  <header class="topbar">
-    <div class="avatar" id="avatar">
-      <img id="avatarImg" src="assets/Medya.png" alt="Avatar" />
-      <input id="avatarInput" type="file" accept="image/*" hidden />
-    </div>
-    <div class="brand">FEKAI</div>
-    <div class="top-actions">
-      <button id="historyBtn" class="ghost">📋 Geçmiş</button>
-      <button id="newChatBtn" class="ghost">➕ Yeni</button>
-      <div id="userInfo" class="user-info"></div>
-      <button id="logoutBtn" class="ghost">🚪 Çıkış</button>
-    </div>
-  </header>
-
-  <!-- Overlay for sidebar -->
-  <div class="sidebar-overlay"></div>
-
-  <!-- Decorative side figures -->
-  <div class="side-figure side-figure-left" aria-hidden="true">
-    <img src="assets/Medya.png" alt="FEKAI robot simgesi" />
-  </div>
-  <div class="side-figure side-figure-right" aria-hidden="true">
-    <img src="assets/user.png" alt="Kullanıcı simgesi" />
-  </div>
+  <!-- Hidden elements for functionality -->
+  <input id="avatarInput" type="file" accept="image/*" hidden />
+  <input id="fileInput" type="file" accept=".pdf,.txt,.csv" hidden />
+  <input id="adminFileInput" type="file" accept=".pdf,.txt,.csv" multiple hidden />
 
   <!-- Main Container -->
-  <div class="app-container">
-    <!-- Sidebar for Chat History -->
-    <aside id="historySidebar" class="history-sidebar">
-      <!-- Tabs for switching between chat history and admin panel -->
-      <div id="sidebarTabs" class="sidebar-tabs" style="display: none;">
-        <button class="sidebar-tab active" data-tab="history">📋 Sohbetler</button>
-        <button class="sidebar-tab" data-tab="admin">👑 Admin</button>
-      </div>
-      
-      <!-- Chat History Section -->
-      <div id="historySection" class="sidebar-section active">
-        <div class="sidebar-header">
-          <h3>Geçmiş Sohbetler</h3>
-          <button id="closeHistoryBtn" class="close-btn">✕</button>
+  <div class="feka-container">
+    <!-- Left Sidebar - FEKA Branding -->
+    <aside class="feka-sidebar">
+      <div class="feka-logo-section">
+        <div class="feka-robot-container">
+          <img src="assets/Medya.png" alt="FEKA Robot" class="feka-robot-img" />
         </div>
-        <div id="historyList" class="history-list"></div>
-      </div>
-      
-      <!-- Admin Panel Section -->
-      <div id="adminSection" class="sidebar-section" style="display: none;">
-        <div class="sidebar-header">
-          <h3>👑 Admin Paneli</h3>
-          <button id="closeAdminBtn" class="close-btn">✕</button>
-        </div>
-        <div class="admin-panel-content">
-          <!-- Dosya Yükleme -->
-          <div class="admin-section">
-            <h4>📁 Kaynak Yükleme</h4>
-            <input id="adminFileInput" type="file" accept=".pdf,.txt,.csv" multiple hidden />
-            <button id="adminFileUploadBtn" class="admin-button-primary">Dosya Seç ve Yükle</button>
-            <p id="adminFileStatus" class="admin-info" style="margin-top: 8px;"></p>
-          </div>
-          
-          <!-- Yüklenen Kaynaklar -->
-          <div class="admin-section">
-            <h4>📚 Yüklenen Kaynaklar</h4>
-            <div id="uploadedSourcesList" class="uploaded-sources-list">
-              <div class="no-sources">Henüz kaynak yüklenmedi</div>
-            </div>
-          </div>
-          
-          <!-- İstatistikler -->
-          <div class="admin-section">
-            <h4>📊 İstatistikler</h4>
-            <div id="statsContainer" class="stats-grid">
-              <div class="stat-box">
-                <div class="stat-value" id="totalChatsCount">0</div>
-                <div class="stat-label">Toplam Sohbet</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="totalUsersCount">0</div>
-                <div class="stat-label">Aktif Kullanıcı</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="totalMessagesCount">0</div>
-                <div class="stat-label">Toplam Mesaj</div>
-              </div>
-              <div class="stat-box">
-                <div class="stat-value" id="uploadedFilesCount">0</div>
-                <div class="stat-label">Yüklü Dosya</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Tüm Sohbetler -->
-          <div class="admin-section">
-            <h4>💬 Tüm Kullanıcı Sohbetleri</h4>
-            <div id="allChatsContainer" class="all-chats-list"></div>
-          </div>
-          
-          <button id="refreshAdminBtn" class="admin-button">🔄 Verileri Yenile</button>
-        </div>
+        <h1 class="feka-title">FEKAi</h1>
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main">
-      <section class="hero">
-        <div class="logo"><img id="heroLogo" src="assets/Medya.png" alt="Logo" /></div>
-        <h1 id="greeting" class="title">Merhaba, Ali</h1>
-      </section>
+    <!-- Center - Chat Area -->
+    <main class="feka-chat-main">
+      <div class="feka-chat-header">
+        <img src="assets/Medya.png" alt="FEKA Logo" class="feka-header-logo" />
+      </div>
+      
+      <div class="feka-messages-wrapper">
+        <div id="messages" class="feka-messages" aria-live="polite"></div>
+      </div>
 
-      <section class="chat-card">
-        <div id="messages" class="messages" aria-live="polite"></div>
-
-        <div class="composer">
-          <input id="fileInput" type="file" accept=".pdf,.txt,.csv" hidden />
-          <button id="fileUploadBtn" class="tool" title="Döküman Yükle" aria-label="Döküman Yükle">📄</button>
-          <input id="input" class="input" placeholder="Bugün size nasıl yardımcı olabilirim?" autocomplete="off" />
-          <div class="model">
-            <select id="modelSelect" aria-label="Model">
-              <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
-              <option value="gpt-4o">gpt-4o</option>
-            </select>
-          </div>
-          <button id="send" class="send" aria-label="Gönder">➤</button>
-        </div>
-        <div id="fileStatus" class="file-status" style="display: none;"></div>
-      </section>
+      <div class="feka-input-section">
+        <select id="modelSelect" class="feka-model-select" aria-label="Model">
+          <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+          <option value="gpt-4o">gpt-4o</option>
+        </select>
+        <input 
+          id="input" 
+          class="feka-input" 
+          placeholder="Mesajınızı yazın..." 
+          autocomplete="off" 
+        />
+        <button id="send" class="feka-send-btn" aria-label="Gönder">Gönder</button>
+      </div>
+      <div id="fileStatus" class="file-status" style="display: none;"></div>
     </main>
+
+    <!-- Right Sidebar - User Profile -->
+    <aside class="feka-user-sidebar">
+      <div class="feka-user-profile">
+        <div class="feka-user-avatar" id="avatar">
+          <img id="avatarImg" src="assets/user.png" alt="User Avatar" />
+        </div>
+        <h2 class="feka-user-name" id="userName">Ali Çelik</h2>
+        <div class="feka-user-info">
+          <div class="feka-info-item">
+            <span class="feka-info-icon">💼</span>
+            <div>
+              <div class="feka-info-label">Pozisyon</div>
+              <div class="feka-info-value" id="userPosition">Mühendis</div>
+            </div>
+          </div>
+          <div class="feka-info-item">
+            <span class="feka-info-icon">🏢</span>
+            <div>
+              <div class="feka-info-label">Departman</div>
+              <div class="feka-info-value" id="userDepartment">Ar-Ge</div>
+            </div>
+          </div>
+        </div>
+        <div class="feka-user-actions">
+          <button id="historyBtn" class="feka-action-btn">📋 Geçmiş</button>
+          <button id="newChatBtn" class="feka-action-btn">➕ Yeni Sohbet</button>
+          <button id="fileUploadBtn" class="feka-action-btn">📄 Dosya Yükle</button>
+          <button id="logoutBtn" class="feka-action-btn feka-logout-btn">🚪 Çıkış</button>
+        </div>
+      </div>
+    </aside>
   </div>
 
-  <footer class="footer">Basit bir demo. Mesajlar yerel olarak saklanır.</footer>
+  <!-- History Sidebar (Hidden by default) -->
+  <aside id="historySidebar" class="history-sidebar">
+    <div id="sidebarTabs" class="sidebar-tabs" style="display: none;">
+      <button class="sidebar-tab active" data-tab="history">📋 Sohbetler</button>
+      <button class="sidebar-tab" data-tab="admin">👑 Admin</button>
+    </div>
+    
+    <div id="historySection" class="sidebar-section active">
+      <div class="sidebar-header">
+        <h3>Geçmiş Sohbetler</h3>
+        <button id="closeHistoryBtn" class="close-btn">✕</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+    
+    <div id="adminSection" class="sidebar-section" style="display: none;">
+      <div class="sidebar-header">
+        <h3>👑 Admin Paneli</h3>
+        <button id="closeAdminBtn" class="close-btn">✕</button>
+      </div>
+      <div class="admin-panel-content">
+        <div class="admin-section">
+          <h4>📁 Kaynak Yükleme</h4>
+          <button id="adminFileUploadBtn" class="admin-button-primary">Dosya Seç ve Yükle</button>
+          <p id="adminFileStatus" class="admin-info" style="margin-top: 8px;"></p>
+        </div>
+        <div class="admin-section">
+          <h4>📚 Yüklenen Kaynaklar</h4>
+          <div id="uploadedSourcesList" class="uploaded-sources-list">
+            <div class="no-sources">Henüz kaynak yüklenmedi</div>
+          </div>
+        </div>
+        <div class="admin-section">
+          <h4>📊 İstatistikler</h4>
+          <div id="statsContainer" class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-value" id="totalChatsCount">0</div>
+              <div class="stat-label">Toplam Sohbet</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="totalUsersCount">0</div>
+              <div class="stat-label">Aktif Kullanıcı</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="totalMessagesCount">0</div>
+              <div class="stat-label">Toplam Mesaj</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="uploadedFilesCount">0</div>
+              <div class="stat-label">Yüklü Dosya</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-section">
+          <h4>💬 Tüm Kullanıcı Sohbetleri</h4>
+          <div id="allChatsContainer" class="all-chats-list"></div>
+        </div>
+        <button id="refreshAdminBtn" class="admin-button">🔄 Verileri Yenile</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Hidden elements for backward compatibility -->
+  <div style="display:none;">
+    <div id="greeting"></div>
+    <div id="heroLogo"></div>
+    <div id="userInfo"></div>
+    <select id="modelSelect">
+      <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+      <option value="gpt-4o">gpt-4o</option>
+    </select>
+  </div>
 
   <script src="app.js"></script>
 </body>

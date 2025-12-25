@@ -205,6 +205,21 @@
     if(h >= 18 && h < 24) return `İyi akşamlar, ${name}`;
     return `İyi geceler, ${name}`;
   }
+  // Kullanıcı bilgilerini güncelle
+  const userNameEl = el('#userName');
+  const userPositionEl = el('#userPosition');
+  const userDepartmentEl = el('#userDepartment');
+  
+  if (userNameEl) {
+    userNameEl.textContent = username || 'Ali Çelik';
+  }
+  if (userPositionEl) {
+    userPositionEl.textContent = 'Mühendis';
+  }
+  if (userDepartmentEl) {
+    userDepartmentEl.textContent = 'Ar-Ge';
+  }
+  
   greetingEl.textContent = greeting();
 
   // Model selection persistence
@@ -352,10 +367,10 @@
 
   function addMessageEl(msg){
     const row = document.createElement('div');
-    row.className = `msg ${msg.who === 'me' ? 'me' : ''}`;
+    row.className = `message ${msg.who === 'me' ? 'user' : 'bot'}`;
 
-    const who = document.createElement('div');
-    who.className = 'who';
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
     const img = document.createElement('img');
     
     // User messages use user.png, bot messages use robot
@@ -366,25 +381,20 @@
       img.src = 'assets/Medya.png';
       img.alt = 'Bot';
     }
-    who.appendChild(img);
+    avatar.appendChild(img);
 
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
+    const content = document.createElement('div');
+    content.className = 'message-content';
     
     // Bot mesajları için formatlanmış HTML, kullanıcı mesajları için düz metin
     if(msg.who === 'bot'){
-      bubble.innerHTML = formatMessage(msg.text);
+      content.innerHTML = formatMessage(msg.text);
     } else {
-      bubble.textContent = msg.text;
+      content.textContent = msg.text;
     }
 
-    if(msg.who === 'me'){
-      row.appendChild(bubble);
-      row.appendChild(who);
-    } else {
-      row.appendChild(who);
-      row.appendChild(bubble);
-    }
+    row.appendChild(avatar);
+    row.appendChild(content);
 
     messagesEl.appendChild(row);
   }
@@ -430,21 +440,21 @@
     // Bot mesaj balonunu hemen oluştur
     const botMsg = { who: 'bot', text: '' };
     const row = document.createElement('div');
-    row.className = 'msg';
+    row.className = 'message bot';
     
-    const who = document.createElement('div');
-    who.className = 'who';
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
     const img = document.createElement('img');
     img.src = 'assets/Medya.png';
     img.alt = 'Bot';
-    who.appendChild(img);
+    avatar.appendChild(img);
     
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
-    bubble.innerHTML = '<span class="typing-indicator">●●●</span>';
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.innerHTML = '<span class="typing-indicator">●●●</span>';
     
-    row.appendChild(who);
-    row.appendChild(bubble);
+    row.appendChild(avatar);
+    row.appendChild(content);
     messagesEl.appendChild(row);
     scrollToBottom();
 
@@ -485,7 +495,7 @@
                 
                 if(data.text) {
                   fullText += data.text;
-                  bubble.innerHTML = formatMessage(fullText);
+                  content.innerHTML = formatMessage(fullText);
                   scrollToBottom();
                 }
                 

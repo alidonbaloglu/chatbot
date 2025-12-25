@@ -39,8 +39,17 @@
   const modalDocMimeType = el('#modalDocMimeType');
 
   // Kullanıcı bilgisini göster
-  if (userInfoEl) {
-    userInfoEl.textContent = `👑 Admin: ${username}`;
+  const adminUserName = el('#adminUserName');
+  if (adminUserName) {
+    adminUserName.textContent = username || 'Admin';
+  }
+  
+  // Refresh All button
+  const refreshAllBtn = el('#refreshAllBtn');
+  if (refreshAllBtn) {
+    refreshAllBtn.addEventListener('click', () => {
+      loadAllData();
+    });
   }
 
   // Logout
@@ -61,9 +70,12 @@
   }
 
   if (chatDetailModal) {
-    chatDetailModal.querySelector('.modal-overlay').addEventListener('click', () => {
-      chatDetailModal.style.display = 'none';
-    });
+    const overlay = chatDetailModal.querySelector('.feka-modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        chatDetailModal.style.display = 'none';
+      });
+    }
   }
 
   // Döküman modal kapatma
@@ -74,9 +86,12 @@
   }
 
   if (documentDetailModal) {
-    documentDetailModal.querySelector('.modal-overlay').addEventListener('click', () => {
-      documentDetailModal.style.display = 'none';
-    });
+    const overlay = documentDetailModal.querySelector('.feka-modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        documentDetailModal.style.display = 'none';
+      });
+    }
   }
 
   // Dosya yükleme
@@ -169,12 +184,12 @@
         const sizeKB = file.fileSize ? (file.fileSize / 1024).toFixed(1) : '?';
         
         const sourceEl = document.createElement('div');
-        sourceEl.className = 'source-item';
+        sourceEl.className = 'admin-source-item';
         sourceEl.innerHTML = `
-          <div class="source-icon">📄</div>
-          <div class="source-info">
-            <div class="source-name">${file.fileName}</div>
-            <div class="source-meta">
+          <div class="admin-source-icon">📄</div>
+          <div class="admin-source-info">
+            <div class="admin-source-name">${file.fileName}</div>
+            <div class="admin-source-meta">
               👤 ${file.uploadedBy} | 📅 ${dateStr} | 💾 ${sizeKB} KB
             </div>
           </div>
@@ -315,14 +330,14 @@
         const messageCount = (chat.history || []).length;
         
         const chatEl = document.createElement('div');
-        chatEl.className = 'chat-item';
+        chatEl.className = 'admin-chat-item';
         chatEl.innerHTML = `
-          <div class="chat-item-header">
-            <div class="chat-item-username">👤 ${chat.username || 'Bilinmeyen'}</div>
+          <div class="admin-chat-item-header">
+            <div class="admin-chat-item-username">👤 ${chat.username || 'Bilinmeyen'}</div>
             <button class="btn-delete-chat" data-chat-id="${chat.id}" title="Sil">🗑️</button>
           </div>
-          <div class="chat-item-text">${userQuestion}${userQuestion.length === 100 ? '...' : ''}</div>
-          <div class="chat-item-meta">📅 ${dateStr} | 💬 ${messageCount} mesaj</div>
+          <div class="admin-chat-item-text">${userQuestion}${userQuestion.length === 100 ? '...' : ''}</div>
+          <div class="admin-chat-item-meta">📅 ${dateStr} | 💬 ${messageCount} mesaj</div>
         `;
         
         // Tüm alana tıklanabilen kılma (sil butonundan hariç)
@@ -385,17 +400,18 @@
       } else {
         chat.history.forEach(msg => {
           const msgEl = document.createElement('div');
-          msgEl.className = `chat-message ${msg.who === 'me' ? 'user' : 'bot'}`;
+          msgEl.className = 'feka-modal-message';
           
-          const label = document.createElement('div');
-          label.className = 'chat-message-label';
-          label.textContent = msg.who === 'me' ? '👤 Kullanıcı' : '🤖 Bot';
+          const roleLabel = document.createElement('div');
+          roleLabel.className = 'feka-modal-message-role';
+          roleLabel.textContent = msg.who === 'me' ? '👤 Kullanıcı' : '🤖 Bot';
           
-          const content = document.createElement('div');
-          content.textContent = msg.text;
+          const textContent = document.createElement('div');
+          textContent.className = 'feka-modal-message-text';
+          textContent.textContent = msg.text;
           
-          msgEl.appendChild(label);
-          msgEl.appendChild(content);
+          msgEl.appendChild(roleLabel);
+          msgEl.appendChild(textContent);
           modalChatMessages.appendChild(msgEl);
         });
       }
