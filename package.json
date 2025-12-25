@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "start:rag": "python python/rag_service.py",
+    "start:all": "start cmd /k \"python python/rag_service.py\" && timeout /t 2 && node server.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.19.0",
